@@ -1,6 +1,8 @@
 
 using Microsoft.EntityFrameworkCore;
 using SistemaGestaoAcademicaAPI.Data;
+using SistemaGestaoAcademicaAPI.Repositories;
+using SistemaGestaoAcademicaAPI.Repositories.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         ServerVersion.AutoDetect(connectionString)
     )
 );
+// Registrar os Repositories
+builder.Services.AddScoped<IAlunoRepository, AlunoRepository>();
+builder.Services.AddScoped<IProfessorRepository, ProfessorRepository>();
+builder.Services.AddScoped<IDisciplinaRepository, DisciplinaRepository>();
+builder.Services.AddScoped<ITurmaRepository, TurmaRepository>();
+builder.Services.AddScoped<INotaRepository, NotaRepository>();
 
 var app = builder.Build();
 
