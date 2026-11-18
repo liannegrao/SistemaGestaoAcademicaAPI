@@ -24,5 +24,22 @@ namespace SistemaGestaoAcademicaAPI.Data
 
         // Tabela de notas
         public DbSet<Nota> Notas { get; set; } = null!;
+
+        // Tabela de usuários
+        public DbSet<Usuario> Usuarios { get; set; } = null!;
+
+        // =====================================
+        // CONFIGURAÇÕES DO BANCO DE DADOS
+        // =====================================
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Impedir que dois usuários tenham o mesmo e-mail
+            modelBuilder.Entity<Usuario>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+        }
     }
 }

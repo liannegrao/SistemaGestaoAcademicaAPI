@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SistemaGestaoAcademicaAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using SistemaGestaoAcademicaAPI.Repositories.Interfaces;
 
 namespace SistemaGestaoAcademicaAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class AlunosController : ControllerBase

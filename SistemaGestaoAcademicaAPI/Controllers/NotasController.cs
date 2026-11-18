@@ -1,8 +1,10 @@
 ﻿
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using SistemaGestaoAcademicaAPI.DTOs;
 using SistemaGestaoAcademicaAPI.Models;
 using SistemaGestaoAcademicaAPI.Repositories.Interfaces;
+using SistemaGestaoAcademicaAPI.Services;
 
 namespace SistemaGestaoAcademicaAPI.Controllers
 {
@@ -13,15 +15,18 @@ namespace SistemaGestaoAcademicaAPI.Controllers
         private readonly INotaRepository _notaRepository;
         private readonly IAlunoRepository _alunoRepository;
         private readonly ITurmaRepository _turmaRepository;
+        private readonly IMediaService _mediaService;
 
         public NotasController(
             INotaRepository notaRepository,
             IAlunoRepository alunoRepository,
-            ITurmaRepository turmaRepository)
+            ITurmaRepository turmaRepository,
+            IMediaService mediaService)
         {
             _notaRepository = notaRepository;
             _alunoRepository = alunoRepository;
             _turmaRepository = turmaRepository;
+            _mediaService = mediaService;
         }
 
         // Formatar os dados retornados pela API
@@ -54,7 +59,9 @@ namespace SistemaGestaoAcademicaAPI.Controllers
             var nota = await _notaRepository.ObterPorIdAsync(id);
 
             if (nota == null)
+            {
                 return NotFound("Nota não encontrada.");
+            }
 
             return Ok(FormatarNota(nota));
         }
@@ -66,11 +73,40 @@ namespace SistemaGestaoAcademicaAPI.Controllers
             var aluno = await _alunoRepository.ObterPorIdAsync(alunoId);
 
             if (aluno == null)
+            {
                 return NotFound("Aluno não encontrado.");
+            }
 
             var notas = await _notaRepository.ObterPorAlunoAsync(alunoId);
 
             return Ok(notas.Select(FormatarNota).ToList());
+        }
+
+        // GET: api/Notas/aluno/1/media
+        [HttpGet("aluno/{alunoId:int}/media")]
+        public async Task<IActionResult> GetMediaAluno(int alunoId)
+        {
+            // Verificar se o aluno existe
+            var aluno = await _alunoRepository.ObterPorIdAsync(alunoId);
+
+            if (aluno == null)
+            {
+                return NotFound("Aluno não encontrado.");
+            }
+
+            // Calcular a média utilizando o MediaService
+            var resultado = await _mediaService
+                .CalcularMediaAlunoAsync(alunoId);
+
+            // Retornar a média e a situação do aluno
+            return Ok(new
+            {
+                resultado.AlunoId,
+                NomeAluno = aluno.Nome,
+                resultado.QuantidadeNotas,
+                resultado.Media,
+                resultado.Situacao
+            });
         }
 
         // POST: api/Notas
@@ -80,12 +116,16 @@ namespace SistemaGestaoAcademicaAPI.Controllers
             var aluno = await _alunoRepository.ObterPorIdAsync(dto.AlunoId);
 
             if (aluno == null)
+            {
                 return BadRequest("Aluno não encontrado.");
+            }
 
             var turma = await _turmaRepository.ObterPorIdAsync(dto.TurmaId);
 
             if (turma == null)
+            {
                 return BadRequest("Turma não encontrada.");
+            }
 
             var nota = new Nota
             {
@@ -116,17 +156,23 @@ namespace SistemaGestaoAcademicaAPI.Controllers
             var notaExistente = await _notaRepository.ObterPorIdAsync(id);
 
             if (notaExistente == null)
+            {
                 return NotFound("Nota não encontrada.");
+            }
 
             var aluno = await _alunoRepository.ObterPorIdAsync(dto.AlunoId);
 
             if (aluno == null)
+            {
                 return BadRequest("Aluno não encontrado.");
+            }
 
             var turma = await _turmaRepository.ObterPorIdAsync(dto.TurmaId);
 
             if (turma == null)
+            {
                 return BadRequest("Turma não encontrada.");
+            }
 
             var nota = new Nota
             {
@@ -136,7 +182,12 @@ namespace SistemaGestaoAcademicaAPI.Controllers
                 Valor = dto.Valor!.Value
             };
 
-            await _notaRepository.AtualizarAsync(id, nota);
+            var atualizado = await _notaRepository.AtualizarAsync(id, nota);
+
+            if (!atualizado)
+            {
+                return NotFound("Nota não encontrada.");
+            }
 
             return NoContent();
         }
@@ -148,7 +199,9 @@ namespace SistemaGestaoAcademicaAPI.Controllers
             var excluido = await _notaRepository.ExcluirAsync(id);
 
             if (!excluido)
+            {
                 return NotFound("Nota não encontrada.");
+            }
 
             return NoContent();
         }

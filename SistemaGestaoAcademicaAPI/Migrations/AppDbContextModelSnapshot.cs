@@ -147,6 +147,36 @@ namespace SistemaGestaoAcademicaAPI.Migrations
                     b.ToTable("Turmas");
                 });
 
+            modelBuilder.Entity("SistemaGestaoAcademicaAPI.Models.Usuario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("varchar(120)");
+
+                    b.Property<string>("SenhaHash")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Usuarios");
+                });
+
             modelBuilder.Entity("SistemaGestaoAcademicaAPI.Models.Nota", b =>
                 {
                     b.HasOne("SistemaGestaoAcademicaAPI.Models.Aluno", "Aluno")
